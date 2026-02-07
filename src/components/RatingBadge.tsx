@@ -7,41 +7,19 @@ interface RatingBadgeProps {
 }
 
 export default function RatingBadge({ rating, score, size = 'md' }: RatingBadgeProps) {
-  const sizeClasses = {
-    sm: 'w-16 h-16 text-sm',
-    md: 'w-24 h-24 text-lg',
-    lg: 'w-32 h-32 text-2xl',
-  };
-
-  const scoreSizeClasses = {
-    sm: 'text-xs',
-    md: 'text-sm',
-    lg: 'text-base',
-  };
-
+  const sizeClasses = { sm: 'w-14 h-14 text-sm', md: 'w-20 h-20 text-lg', lg: 'w-28 h-28 text-2xl' };
+  const scoreSizeClasses = { sm: 'text-[10px]', md: 'text-xs', lg: 'text-sm' };
   const ratingClass = `rating-${rating.toLowerCase()}`;
+  const ratingColor =
+    rating === 'Clean' ? '#22c55e' : rating === 'Mild' ? '#eab308' : rating === 'Moderate' ? '#f97316' : rating === 'Heavy' ? '#ef4444' : '#dc2626';
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div
-        className={`${sizeClasses[size]} ${ratingClass} rounded-full flex flex-col items-center justify-center text-white font-bold shadow-lg`}
-      >
+    <div className="flex flex-col items-center gap-1.5">
+      <div className={`${sizeClasses[size]} ${ratingClass} rounded-full flex flex-col items-center justify-center text-white font-bold`}>
         <span>{score}</span>
-        <span className={`${scoreSizeClasses[size]} font-medium opacity-90`}>/100</span>
+        <span className={`${scoreSizeClasses[size]} font-medium opacity-80`}>/100</span>
       </div>
-      <span
-        className={`font-semibold ${
-          rating === 'Clean'
-            ? 'text-emerald-400'
-            : rating === 'Mild'
-            ? 'text-amber-400'
-            : rating === 'Moderate'
-            ? 'text-orange-400'
-            : rating === 'Heavy'
-            ? 'text-red-400'
-            : 'text-red-600'
-        } ${size === 'lg' ? 'text-xl' : size === 'md' ? 'text-base' : 'text-sm'}`}
-      >
+      <span className={`font-semibold ${size === 'lg' ? 'text-base' : 'text-sm'}`} style={{ color: ratingColor }}>
         {rating}
       </span>
     </div>
