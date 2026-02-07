@@ -2,33 +2,48 @@ import { SubtitleResult } from '@/types';
 import { searchCache, subtitleCache } from './cache';
 
 const BASE_URL = 'https://api.opensubtitles.com/api/v1';
-const API_KEY = process.env.OPENSUBTITLES_API_KEY!;
 
-const headers = {
-  'Api-Key': API_KEY,
-  'Content-Type': 'application/json',
-  'Accept': 'application/json',
-  'User-Agent': 'ProfanityChecker v1.0',
-};
+function getHeaders(): Record<string, string> {
+  const apiKey = process.env.OPENSUBTITLES_API_KEY;
+  if (!apiKey) {
+    throw new Error('OPENSUBTITLES_API_KEY environment variable is not set');
+  }
+  return {
+    'Api-Key': apiKey,
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'User-Agent': 'ProfanityChecker v1.0',
+  };
+}
 
 export async function searchFeatures(query: string): Promise<unknown[]> {
   const cacheKey = `features:${query.toLowerCase()}`;
   const cached = searchCache.get<unknown[]>(cacheKey);
   if (cached) return cached;
 
-  const res = await fetch(
-    `${BASE_URL}/features?query=${encodeURIComponent(query)}`,
-    { headers }
-  );
+  const headers = getHeaders();
 
-  if (!res.ok) {
-    throw new Error(`OpenSubtitles features search failed: ${res.status}`);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+
+  try {
+    const res = await fetch(
+      `${BASE_URL}/features?query=${encodeURIComponent(query)}`,
+      { headers, signal: controller.signal }
+    );
+
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`OpenSubtitles features search failed: ${res.status} - ${body}`);
+    }
+
+    const json = await res.json();
+    const results = json.data || [];
+    searchCache.set(cacheKey, results, 1800000); // 30 min cache
+    return results;
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const json = await res.json();
-  const results = json.data || [];
-  searchCache.set(cacheKey, results, 1800000); // 30 min cache
-  return results;
 }
 
 export async function searchSubtitles(
@@ -40,6 +55,8 @@ export async function searchSubtitles(
   const cached = searchCache.get<SubtitleResult[]>(cacheKey);
   if (cached) return cached;
 
+  const headers = getHeaders();
+
   const params = new URLSearchParams({
     tmdb_id: tmdbId.toString(),
     languages: language,
@@ -47,7 +64,15 @@ export async function searchSubtitles(
     type: type === 'tvshow' ? 'episode' : 'movie',
   });
 
-  const res = await fetch(`${BASE_URL}/subtitles?${params}`, { headers });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}/subtitles?${params}`, { headers, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!res.ok) {
     throw new Error(`OpenSubtitles subtitle search failed: ${res.status}`);
@@ -78,6 +103,8 @@ export async function downloadSubtitle(fileId: number): Promise<string> {
   const cacheKey = `subtitle_content:${fileId}`;
   const cached = subtitleCache.get<string>(cacheKey);
   if (cached) return cached;
+
+  const headers = getHeaders();
 
   // Step 1: Login to get bearer token
   const loginRes = await fetch(`${BASE_URL}/login`, {

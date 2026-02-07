@@ -39,10 +39,19 @@ export default function SearchBar({ onSelect }: SearchBarProps) {
     try {
       const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
       const data = await res.json();
+
+      if (!res.ok) {
+        console.error('Search API error:', data.error);
+        setResults([]);
+        setIsOpen(true);
+        return;
+      }
+
       setResults(data.results || []);
       setIsOpen(true);
       setSelectedIndex(-1);
-    } catch {
+    } catch (err) {
+      console.error('Search fetch failed:', err);
       setResults([]);
     } finally {
       setIsLoading(false);
