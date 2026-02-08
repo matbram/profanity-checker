@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { searchSubtitles, downloadSubtitle, parseSRT } from '@/lib/opensubtitles';
+import { parseSRT } from '@/lib/opensubtitles';
+import { searchAllProviders } from '@/lib/subtitle-providers';
 import { analyzeProfanity, calculateRating } from '@/lib/gemini';
 import { analysisCache } from '@/lib/cache';
 import { AnalysisResult, Feature } from '@/types';
@@ -56,13 +57,22 @@ export async function POST(request: NextRequest) {
       };
 
       try {
-        // Step 0: Search for subtitles
-        send({ step: 0, message: 'Searching for subtitles' });
-        log.info(`Step 1: Searching subtitles for tmdb_id:${feature.tmdb_id} type:${feature.type} s${season}e${episode}`);
+        // Step 0: Search all subtitle providers
+        send({ step: 0, message: 'Searching for subtitles across multiple sources' });
+        log.info(`Step 1: Searching all providers for tmdb_id:${feature.tmdb_id} type:${feature.type} s${season}e${episode}`);
 
-        let subtitles;
+        let candidates;
         try {
-          subtitles = await searchSubtitles(feature.tmdb_id, feature.type, 'en', season, episode);
+          candidates = await searchAllProviders({
+            tmdbId: feature.tmdb_id,
+            imdbId: feature.imdb_id,
+            type: feature.type,
+            title: feature.title,
+            year: feature.year,
+            language: 'en',
+            season,
+            episode,
+          });
         } catch (err) {
           log.error(`Subtitle search failed: ${(err as Error).message}`);
           send({ step: 'error', error: `Subtitle search failed: ${(err as Error).message}` });
@@ -70,39 +80,32 @@ export async function POST(request: NextRequest) {
           return;
         }
 
-        if (!subtitles.length) {
-          log.warn('No subtitles found');
+        if (!candidates.length) {
+          log.warn('No subtitles found from any provider');
           send({ step: 'error', error: 'No subtitles found for this title.' });
           controller.close();
           return;
         }
 
-        const candidates = subtitles.filter((s) => s.files.length > 0);
-        if (!candidates.length) {
-          log.warn('Subtitles found but no downloadable files');
-          send({ step: 'error', error: 'No downloadable subtitle files found.' });
-          controller.close();
-          return;
-        }
+        log.info(`${candidates.length} candidates from providers, trying downloads`);
 
-        // Step 1: Download subtitles
+        // Step 1: Download subtitles (try candidates from different providers)
         send({ step: 1, message: 'Downloading subtitle file' });
         let subtitleText = '';
         let subtitlesAttempted = 0;
-        const maxAttempts = Math.min(candidates.length, 3);
+        const maxAttempts = Math.min(candidates.length, 5);
 
         for (let i = 0; i < maxAttempts; i++) {
           const candidate = candidates[i];
           subtitlesAttempted++;
-          log.info(`Trying subtitle ${i + 1}/${maxAttempts}`, {
-            subtitle_id: candidate.subtitle_id,
-            file_id: candidate.files[0].file_id,
+          log.info(`Trying candidate ${i + 1}/${maxAttempts} from ${candidate.provider}`, {
+            id: candidate.id,
+            release: candidate.release,
             download_count: candidate.download_count,
-            ratings: candidate.ratings,
           });
 
           try {
-            const rawContent = await downloadSubtitle(candidate.files[0].file_id);
+            const rawContent = await candidate.download();
 
             // Step 2: Parse
             send({ step: 2, message: 'Parsing subtitle content' });
@@ -110,13 +113,13 @@ export async function POST(request: NextRequest) {
 
             if (parsed.length >= 100) {
               subtitleText = parsed;
-              log.info(`Subtitle ${i + 1} accepted: ${parsed.length} chars`);
+              log.info(`Candidate ${i + 1} accepted (${candidate.provider}): ${parsed.length} chars`);
               break;
             } else {
-              log.warn(`Subtitle ${i + 1} too short (${parsed.length} chars), trying next`);
+              log.warn(`Candidate ${i + 1} too short (${parsed.length} chars), trying next`);
             }
           } catch (err) {
-            log.warn(`Subtitle ${i + 1} download failed: ${(err as Error).message}, trying next`);
+            log.warn(`Candidate ${i + 1} (${candidate.provider}) download failed: ${(err as Error).message}, trying next`);
           }
         }
 
