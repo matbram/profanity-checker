@@ -1,35 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const ALLOWED_HOSTS = [
-  'image.tmdb.org',
-  'www.opensubtitles.com',
-  'www.opensubtitles.org',
-  's.opensubtitles.org',
-  'm.media-amazon.com',
-];
-
 export async function GET(request: NextRequest) {
   const url = request.nextUrl.searchParams.get('url');
   if (!url) {
     return NextResponse.json({ error: 'Missing url parameter' }, { status: 400 });
   }
 
-  let parsed: URL;
   try {
-    parsed = new URL(url);
+    new URL(url);
   } catch {
     return NextResponse.json({ error: 'Invalid URL' }, { status: 400 });
-  }
-
-  if (parsed.protocol !== 'https:') {
-    return NextResponse.json({ error: 'Only HTTPS URLs allowed' }, { status: 400 });
-  }
-
-  const isAllowed = ALLOWED_HOSTS.some(
-    (host) => parsed.hostname === host || parsed.hostname.endsWith('.' + host)
-  );
-  if (!isAllowed) {
-    return NextResponse.json({ error: 'Domain not allowed' }, { status: 403 });
   }
 
   try {
