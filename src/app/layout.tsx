@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export const metadata: Metadata = {
   title: "ProfanityScreen - Movie & TV Profanity Checker",
@@ -12,27 +13,40 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            var t = localStorage.getItem('theme');
+            if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+              document.documentElement.setAttribute('data-theme', 'dark');
+            }
+          })();
+        `}} />
+      </head>
       <body
         className="antialiased min-h-screen"
         style={{
-          background: '#f8fafc',
+          background: 'var(--bg)',
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
         }}
       >
-        <nav className="border-b border-[#e2e8f0] bg-white/80 backdrop-blur-md sticky top-0 z-50">
+        <nav className="border-b backdrop-blur-md sticky top-0 z-50" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--nav-bg)' }}>
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
             <a href="/" className="flex items-center gap-2.5 no-underline">
-              <div className="w-7 h-7 rounded-md bg-[#0891b2] flex items-center justify-center text-white font-bold text-xs">
+              <div className="w-7 h-7 rounded-md flex items-center justify-center text-white font-bold text-xs" style={{ backgroundColor: 'var(--accent)' }}>
                 PS
               </div>
-              <span className="text-[15px] font-semibold text-[#0f172a] tracking-tight">
+              <span className="text-[15px] font-semibold tracking-tight" style={{ color: 'var(--text-primary)' }}>
                 ProfanityScreen
               </span>
             </a>
-            <span className="text-xs text-[#64748b] hidden sm:block">
-              AI-Powered Subtitle Analysis
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs hidden sm:block" style={{ color: 'var(--text-muted)' }}>
+                AI-Powered Subtitle Analysis
+              </span>
+              <ThemeToggle />
+            </div>
           </div>
         </nav>
         <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

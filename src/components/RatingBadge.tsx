@@ -11,7 +11,7 @@ export default function RatingBadge({ rating, score, size = 'md' }: RatingBadgeP
   const scoreSizeClasses = { sm: 'text-[10px]', md: 'text-xs', lg: 'text-sm' };
   const ratingClass = `rating-${rating.toLowerCase()}`;
   const ratingColor =
-    rating === 'Clean' ? '#16a34a' : rating === 'Mild' ? '#ca8a04' : rating === 'Moderate' ? '#ea580c' : rating === 'Heavy' ? '#dc2626' : '#991b1b';
+    rating === 'Clean' ? 'var(--success)' : rating === 'Mild' ? 'var(--warning)' : rating === 'Moderate' ? 'var(--severity-moderate-text)' : rating === 'Heavy' ? 'var(--danger)' : '#991b1b';
 
   return (
     <div className="flex flex-col items-center gap-1.5">

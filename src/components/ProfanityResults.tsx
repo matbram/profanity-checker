@@ -9,14 +9,19 @@ interface ProfanityResultsProps {
   onBack: () => void;
 }
 
+function proxyImg(url: string | null): string | null {
+  if (!url) return null;
+  return `/api/image-proxy?url=${encodeURIComponent(url)}`;
+}
+
 export default function ProfanityResults({ result, onBack }: ProfanityResultsProps) {
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const { feature, categories, totalProfanities, rating, ratingScore, summary } = result;
 
   const severityColor = (severity: string) => {
-    if (severity === 'strong') return { bg: '#fef2f2', border: '#fecaca', text: '#dc2626', bar: '#ef4444' };
-    if (severity === 'moderate') return { bg: '#fff7ed', border: '#fed7aa', text: '#ea580c', bar: '#f97316' };
-    return { bg: '#fefce8', border: '#fef08a', text: '#ca8a04', bar: '#eab308' };
+    if (severity === 'strong') return { bg: 'var(--severity-strong-bg)', border: 'var(--severity-strong-border)', text: 'var(--severity-strong-text)', bar: 'var(--severity-strong-bar)' };
+    if (severity === 'moderate') return { bg: 'var(--severity-moderate-bg)', border: 'var(--severity-moderate-border)', text: 'var(--severity-moderate-text)', bar: 'var(--severity-moderate-bar)' };
+    return { bg: 'var(--severity-mild-bg)', border: 'var(--severity-mild-border)', text: 'var(--severity-mild-text)', bar: 'var(--severity-mild-bar)' };
   };
 
   const episodeLabel = feature.season !== undefined && feature.episode !== undefined
@@ -27,7 +32,8 @@ export default function ProfanityResults({ result, onBack }: ProfanityResultsPro
     <div className="space-y-6 max-w-4xl mx-auto">
       <button
         onClick={onBack}
-        className="flex items-center gap-1.5 text-[#64748b] hover:text-[#0f172a] bg-transparent border-0 cursor-pointer text-sm transition-colors"
+        className="flex items-center gap-1.5 bg-transparent border-0 cursor-pointer text-sm transition-colors"
+        style={{ color: 'var(--text-muted)' }}
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -36,40 +42,40 @@ export default function ProfanityResults({ result, onBack }: ProfanityResultsPro
       </button>
 
       {/* Header card */}
-      <div className="bg-white border border-[#e2e8f0] rounded-xl overflow-hidden shadow-sm">
+      <div className="rounded-xl overflow-hidden shadow-sm" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
         <div className="flex flex-col md:flex-row">
-          <div className="md:w-52 flex-shrink-0 bg-[#f1f5f9]">
+          <div className="md:w-52 flex-shrink-0" style={{ backgroundColor: 'var(--bg-surface)' }}>
             {feature.poster_url ? (
-              <img src={feature.poster_url} alt={feature.title} className="w-full h-full object-cover" style={{ maxHeight: '340px' }} />
+              <img src={proxyImg(feature.poster_url)!} alt={feature.title} className="w-full h-full object-cover" style={{ maxHeight: '340px' }} />
             ) : (
-              <div className="w-full h-56 md:h-full flex items-center justify-center text-[#94a3b8] text-sm">No poster</div>
+              <div className="w-full h-56 md:h-full flex items-center justify-center text-sm" style={{ color: 'var(--text-faint)' }}>No poster</div>
             )}
           </div>
           <div className="flex-1 p-6 flex flex-col justify-between">
             <div>
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <h1 className="text-2xl font-bold text-[#0f172a]">
+                  <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
                     {feature.title}
                     {episodeLabel && (
-                      <span className="text-[#0891b2] ml-2 text-lg font-semibold">{episodeLabel}</span>
+                      <span className="ml-2 text-lg font-semibold" style={{ color: 'var(--accent)' }}>{episodeLabel}</span>
                     )}
                   </h1>
                   <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0891b2]/8 text-[#0891b2] font-medium uppercase tracking-wide">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded font-medium uppercase tracking-wide" style={{ backgroundColor: 'var(--accent-muted)', color: 'var(--accent)' }}>
                       {feature.type === 'tvshow' ? 'TV Show' : 'Movie'}
                     </span>
-                    {feature.year > 0 && <span className="text-sm text-[#64748b]">{feature.year}</span>}
+                    {feature.year > 0 && <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{feature.year}</span>}
                     {feature.genres && feature.genres.length > 0 && (
-                      <span className="text-sm text-[#64748b]">{feature.genres.join(', ')}</span>
+                      <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{feature.genres.join(', ')}</span>
                     )}
-                    {feature.runtime && feature.runtime > 0 && <span className="text-sm text-[#64748b]">{feature.runtime} min</span>}
+                    {feature.runtime && feature.runtime > 0 && <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{feature.runtime} min</span>}
                   </div>
                 </div>
                 <RatingBadge rating={rating} score={ratingScore} size="lg" />
               </div>
-              {feature.tagline && <p className="text-[#94a3b8] italic mt-2 text-sm">&ldquo;{feature.tagline}&rdquo;</p>}
-              {feature.overview && <p className="text-[#475569] mt-3 text-sm leading-relaxed line-clamp-3">{feature.overview}</p>}
+              {feature.tagline && <p className="italic mt-2 text-sm" style={{ color: 'var(--text-faint)' }}>&ldquo;{feature.tagline}&rdquo;</p>}
+              {feature.overview && <p className="mt-3 text-sm leading-relaxed line-clamp-3" style={{ color: 'var(--text-secondary)' }}>{feature.overview}</p>}
             </div>
           </div>
         </div>
@@ -77,54 +83,54 @@ export default function ProfanityResults({ result, onBack }: ProfanityResultsPro
 
       {/* Quick stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-white border border-[#e2e8f0] rounded-xl p-4 text-center shadow-sm">
-          <div className="text-2xl font-bold text-[#0f172a]">{totalProfanities}</div>
-          <div className="text-xs text-[#64748b] mt-0.5">Total Words</div>
+        <div className="rounded-xl p-4 text-center shadow-sm" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{totalProfanities}</div>
+          <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Total Words</div>
         </div>
-        <div className="bg-white border border-[#e2e8f0] rounded-xl p-4 text-center shadow-sm">
-          <div className="text-2xl font-bold text-[#0f172a]">{categories.length}</div>
-          <div className="text-xs text-[#64748b] mt-0.5">Categories</div>
+        <div className="rounded-xl p-4 text-center shadow-sm" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{categories.length}</div>
+          <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Categories</div>
         </div>
-        <div className="bg-white border border-[#e2e8f0] rounded-xl p-4 text-center shadow-sm">
+        <div className="rounded-xl p-4 text-center shadow-sm" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           <div className="text-2xl font-bold" style={{
-            color: rating === 'Clean' ? '#16a34a' : rating === 'Mild' ? '#ca8a04' : rating === 'Moderate' ? '#ea580c' : '#dc2626'
+            color: rating === 'Clean' ? 'var(--success)' : rating === 'Mild' ? 'var(--warning)' : rating === 'Moderate' ? 'var(--severity-moderate-text)' : 'var(--danger)'
           }}>
             {rating}
           </div>
-          <div className="text-xs text-[#64748b] mt-0.5">Rating</div>
+          <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Rating</div>
         </div>
         {feature.vote_average !== undefined && feature.vote_average > 0 ? (
-          <div className="bg-white border border-[#e2e8f0] rounded-xl p-4 text-center shadow-sm">
-            <div className="text-2xl font-bold text-[#ca8a04]">{feature.vote_average.toFixed(1)}</div>
-            <div className="text-xs text-[#64748b] mt-0.5">TMDB Score</div>
+          <div className="rounded-xl p-4 text-center shadow-sm" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <div className="text-2xl font-bold" style={{ color: 'var(--warning)' }}>{feature.vote_average.toFixed(1)}</div>
+            <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>TMDB Score</div>
           </div>
         ) : (
-          <div className="bg-white border border-[#e2e8f0] rounded-xl p-4 text-center shadow-sm">
-            <div className="text-2xl font-bold text-[#0f172a]">{ratingScore}</div>
-            <div className="text-xs text-[#64748b] mt-0.5">Severity Score</div>
+          <div className="rounded-xl p-4 text-center shadow-sm" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{ratingScore}</div>
+            <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Severity Score</div>
           </div>
         )}
       </div>
 
       {/* AI Summary */}
       {summary && (
-        <div className="bg-white border border-[#e2e8f0] rounded-xl p-5 shadow-sm">
+        <div className="rounded-xl p-5 shadow-sm" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-5 h-5 rounded bg-[#0891b2]/8 flex items-center justify-center">
-              <svg className="w-3 h-3 text-[#0891b2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-5 h-5 rounded flex items-center justify-center" style={{ backgroundColor: 'var(--accent-muted)' }}>
+              <svg className="w-3 h-3" style={{ color: 'var(--accent)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
-            <h2 className="text-sm font-semibold text-[#0f172a]">AI Summary</h2>
+            <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>AI Summary</h2>
           </div>
-          <p className="text-[#475569] text-sm leading-relaxed">{summary}</p>
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{summary}</p>
         </div>
       )}
 
       {/* Visual severity breakdown */}
       {categories.length > 0 && (
-        <div className="bg-white border border-[#e2e8f0] rounded-xl p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-[#0f172a] mb-4">At a Glance</h2>
+        <div className="rounded-xl p-5 shadow-sm" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <h2 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>At a Glance</h2>
           <div className="space-y-3">
             {categories.map((category) => {
               const pct = totalProfanities > 0 ? (category.totalCount / totalProfanities) * 100 : 0;
@@ -134,12 +140,12 @@ export default function ProfanityResults({ result, onBack }: ProfanityResultsPro
                   <span className="text-base w-6 text-center flex-shrink-0">{category.icon}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-[#0f172a] truncate">{category.name}</span>
+                      <span className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{category.name}</span>
                       <span className="text-xs font-semibold ml-2 flex-shrink-0" style={{ color: colors.text }}>
                         {category.totalCount}
                       </span>
                     </div>
-                    <div className="w-full h-2 rounded-full bg-[#f1f5f9] overflow-hidden">
+                    <div className="w-full h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-surface)' }}>
                       <div
                         className="h-full rounded-full severity-bar"
                         style={{ width: `${Math.max(pct, 2)}%`, backgroundColor: colors.bar }}
@@ -155,28 +161,30 @@ export default function ProfanityResults({ result, onBack }: ProfanityResultsPro
 
       {/* Detailed categories */}
       <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-[#0f172a]">Detailed Breakdown</h2>
+        <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Detailed Breakdown</h2>
 
         {categories.length === 0 ? (
-          <div className="bg-white border border-[#e2e8f0] rounded-xl p-8 text-center shadow-sm">
-            <div className="text-[#16a34a] text-lg font-semibold">Clean</div>
-            <p className="text-[#64748b] text-sm mt-1">No profanity detected in this title.</p>
+          <div className="rounded-xl p-8 text-center shadow-sm" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <div className="text-lg font-semibold" style={{ color: 'var(--success)' }}>Clean</div>
+            <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>No profanity detected in this title.</p>
           </div>
         ) : (
           <div className="space-y-2">
             {categories.map((category) => {
               const colors = severityColor(category.severity);
               return (
-                <div key={category.name} className="bg-white border border-[#e2e8f0] rounded-xl overflow-hidden shadow-sm">
+                <div key={category.name} className="rounded-xl overflow-hidden shadow-sm" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
                   <button
                     onClick={() => setExpandedCategory(expandedCategory === category.name ? null : category.name)}
-                    className="w-full flex items-center justify-between p-4 hover:bg-[#f8fafc] cursor-pointer bg-transparent border-0 text-left transition-colors"
+                    className="w-full flex items-center justify-between p-4 cursor-pointer bg-transparent border-0 text-left transition-colors"
+                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--bg-hover)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; }}
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-lg">{category.icon}</span>
                       <div>
-                        <h3 className="text-[#0f172a] text-sm font-medium">{category.name}</h3>
-                        <p className="text-xs text-[#64748b]">
+                        <h3 className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{category.name}</h3>
+                        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                           {category.words.length} word{category.words.length !== 1 ? 's' : ''} &middot; {category.totalCount} total
                         </p>
                       </div>
@@ -187,7 +195,8 @@ export default function ProfanityResults({ result, onBack }: ProfanityResultsPro
                       >
                         {category.severity}
                       </span>
-                      <svg className={`w-4 h-4 text-[#94a3b8] transition-transform ${expandedCategory === category.name ? 'rotate-180' : ''}`}
+                      <svg className={`w-4 h-4 transition-transform ${expandedCategory === category.name ? 'rotate-180' : ''}`}
+                        style={{ color: 'var(--text-faint)' }}
                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
@@ -195,13 +204,13 @@ export default function ProfanityResults({ result, onBack }: ProfanityResultsPro
                   </button>
 
                   {expandedCategory === category.name && (
-                    <div className="border-t border-[#e2e8f0] p-4 bg-[#f8fafc]">
+                    <div className="p-4" style={{ borderTop: '1px solid var(--border)', backgroundColor: 'var(--bg-hover)' }}>
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                         {category.words.map((word) => {
                           const wColors = severityColor(word.severity);
                           return (
-                            <div key={word.word} className="bg-white border border-[#e2e8f0] rounded-lg px-3 py-2 flex items-center justify-between">
-                              <span className="text-[#0f172a] text-sm font-mono">{word.word}</span>
+                            <div key={word.word} className="rounded-lg px-3 py-2 flex items-center justify-between" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                              <span className="text-sm font-mono" style={{ color: 'var(--text-primary)' }}>{word.word}</span>
                               <span className="text-[10px] font-bold px-1.5 py-0.5 rounded"
                                 style={{ backgroundColor: wColors.bg, color: wColors.text }}
                               >
@@ -220,7 +229,7 @@ export default function ProfanityResults({ result, onBack }: ProfanityResultsPro
         )}
       </div>
 
-      <div className="text-center text-[10px] text-[#94a3b8] pb-6">
+      <div className="text-center text-[10px] pb-6" style={{ color: 'var(--text-faint)' }}>
         Analyzed {new Date(result.analyzedAt).toLocaleString()} &middot; Powered by Gemini AI &middot; Subtitles from OpenSubtitles.com
       </div>
     </div>
