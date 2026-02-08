@@ -12,30 +12,30 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <body
         className="antialiased min-h-screen"
         style={{
-          background: '#0a0a0f',
+          background: '#f8fafc',
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
         }}
       >
-        <nav className="border-b border-[#1e1e2e] bg-[#0a0a0f]/80 backdrop-blur-md sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <a href="/" className="flex items-center gap-2 no-underline">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#8b5cf6] to-[#6d28d9] flex items-center justify-center text-white font-bold text-sm">
+        <nav className="border-b border-[#e2e8f0] bg-white/80 backdrop-blur-md sticky top-0 z-50">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+            <a href="/" className="flex items-center gap-2.5 no-underline">
+              <div className="w-7 h-7 rounded-md bg-[#0891b2] flex items-center justify-center text-white font-bold text-xs">
                 PS
               </div>
-              <span className="text-lg font-semibold text-[#e8e8f0]">
+              <span className="text-[15px] font-semibold text-[#0f172a] tracking-tight">
                 ProfanityScreen
               </span>
             </a>
-            <div className="text-sm text-[#6b7280]">
-              AI-Powered Content Analysis
-            </div>
+            <span className="text-xs text-[#64748b] hidden sm:block">
+              AI-Powered Subtitle Analysis
+            </span>
           </div>
         </nav>
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {children}
         </main>
       </body>

@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react';
 
 const steps = [
-  { label: 'Searching for subtitles', icon: '🔍' },
-  { label: 'Downloading subtitle file', icon: '📥' },
-  { label: 'Parsing subtitle content', icon: '📄' },
-  { label: 'AI analyzing for profanity', icon: '🤖' },
-  { label: 'Categorizing and scoring', icon: '📊' },
+  { label: 'Searching for subtitles', icon: '1' },
+  { label: 'Downloading subtitle file', icon: '2' },
+  { label: 'Parsing subtitle content', icon: '3' },
+  { label: 'AI analyzing for profanity', icon: '4' },
+  { label: 'Categorizing results', icon: '5' },
 ];
 
 export default function LoadingAnalysis({ title }: { title: string }) {
@@ -21,60 +21,51 @@ export default function LoadingAnalysis({ title }: { title: string }) {
   }, []);
 
   return (
-    <div className="max-w-lg mx-auto py-16">
-      <div className="bg-[#12121a] border border-[#1e1e2e] rounded-3xl p-8 text-center">
-        <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[#8b5cf6]/20 flex items-center justify-center">
-          <div className="w-8 h-8 border-3 border-[#8b5cf6] border-t-transparent rounded-full animate-spin" />
+    <div className="max-w-md mx-auto py-20">
+      <div className="bg-white border border-[#e2e8f0] rounded-xl shadow-sm p-8 text-center">
+        <div className="w-12 h-12 mx-auto mb-5 rounded-full bg-[#0891b2]/8 flex items-center justify-center">
+          <div className="w-5 h-5 border-2 border-[#0891b2] border-t-transparent rounded-full animate-spin" />
         </div>
 
-        <h2 className="text-xl font-semibold text-[#e8e8f0] mb-2">
+        <h2 className="text-lg font-semibold text-[#0f172a] mb-1">
           Analyzing &ldquo;{title}&rdquo;
         </h2>
-        <p className="text-[#6b7280] mb-8 text-sm">
-          This may take a moment while we process the subtitles...
+        <p className="text-[#64748b] mb-6 text-sm">
+          This may take a moment...
         </p>
 
-        <div className="space-y-3 text-left">
+        <div className="space-y-2 text-left">
           {steps.map((step, index) => (
             <div
               key={step.label}
-              className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
-                index < currentStep
-                  ? 'bg-emerald-500/10'
-                  : index === currentStep
-                  ? 'bg-[#8b5cf6]/10'
-                  : 'opacity-40'
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${
+                index < currentStep ? 'bg-[#f0fdf4]' : index === currentStep ? 'bg-[#ecfeff]' : 'opacity-30'
               }`}
             >
-              <span className="text-lg">{step.icon}</span>
-              <span
-                className={`text-sm ${
+              <div
+                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                   index < currentStep
-                    ? 'text-emerald-400'
+                    ? 'bg-[#16a34a]/15 text-[#16a34a]'
                     : index === currentStep
-                    ? 'text-[#a78bfa]'
-                    : 'text-[#6b7280]'
+                    ? 'bg-[#0891b2]/15 text-[#0891b2]'
+                    : 'bg-[#f1f5f9] text-[#94a3b8]'
                 }`}
               >
+                {index < currentStep ? (
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  step.icon
+                )}
+              </div>
+              <span className={`text-sm ${
+                index < currentStep ? 'text-[#16a34a]' : index === currentStep ? 'text-[#0891b2]' : 'text-[#94a3b8]'
+              }`}>
                 {step.label}
               </span>
-              {index < currentStep && (
-                <svg
-                  className="w-4 h-4 text-emerald-400 ml-auto"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              )}
               {index === currentStep && (
-                <div className="w-4 h-4 border-2 border-[#8b5cf6] border-t-transparent rounded-full animate-spin ml-auto" />
+                <div className="w-3 h-3 border-[1.5px] border-[#0891b2] border-t-transparent rounded-full animate-spin ml-auto" />
               )}
             </div>
           ))}

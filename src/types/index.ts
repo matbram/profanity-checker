@@ -14,6 +14,10 @@ export interface Feature {
   release_date?: string;
   backdrop_url?: string | null;
   tagline?: string;
+  season_count?: number;
+  season?: number;
+  episode?: number;
+  episode_title?: string;
 }
 
 export interface SubtitleFile {
@@ -26,9 +30,11 @@ export interface SubtitleResult {
   subtitle_id: string;
   language: string;
   download_count: number;
+  ratings: number;
   hearing_impaired: boolean;
   release: string;
   files: SubtitleFile[];
+  episode_number?: number;
 }
 
 export interface ProfanityWord {
@@ -54,4 +60,5 @@ export interface AnalysisResult {
   ratingScore: number;
   summary: string;
   analyzedAt: string;
+  subtitlesUsed?: number;
 }

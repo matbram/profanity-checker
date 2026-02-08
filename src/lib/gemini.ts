@@ -1,7 +1,16 @@
 import { ProfanityCategory, ProfanityWord } from '@/types';
+import { createLogger } from './logger';
 
-const API_KEY = process.env.GEMINI_API_KEY!;
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+const log = createLogger('gemini');
+
+function getApiUrl(): string {
+  const apiKey = process.env.GEMINI_API_KEY;
+  log.debug(`Gemini API key check: ${apiKey ? `present (${apiKey.substring(0, 10)}...)` : 'MISSING'}`);
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY environment variable is not set');
+  }
+  return `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+}
 
 interface GeminiProfanityResult {
   profanities: Array<{
@@ -36,11 +45,14 @@ export async function analyzeProfanity(
   title: string
 ): Promise<{ categories: ProfanityCategory[]; summary: string }> {
   const chunks = chunkText(subtitleText);
+  log.info(`Analyzing "${title}": ${subtitleText.length} chars split into ${chunks.length} chunk(s)`);
   const allProfanities: Map<string, ProfanityWord> = new Map();
   let overallSummary = '';
 
   for (let i = 0; i < chunks.length; i++) {
+    log.info(`Processing chunk ${i + 1}/${chunks.length} (${chunks[i].length} chars)`);
     const result = await analyzeChunk(chunks[i], title, i + 1, chunks.length);
+    log.info(`Chunk ${i + 1} result: ${result.profanities.length} profanities found`);
 
     for (const prof of result.profanities) {
       const key = prof.word.toLowerCase();
@@ -159,29 +171,42 @@ ${text}`;
     ],
   };
 
-  const res = await fetch(API_URL, {
+  const apiUrl = getApiUrl();
+  log.info(`Sending to Gemini (chunk ${chunkNum}/${totalChunks}, prompt ~${text.length} chars)`);
+
+  const start = Date.now();
+  const res = await fetch(apiUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
+  const elapsed = Date.now() - start;
+  log.info(`Gemini response: ${res.status} (${elapsed}ms)`);
 
   if (!res.ok) {
     const errorText = await res.text();
-    console.error('Gemini API error:', errorText);
-    throw new Error(`Gemini API failed: ${res.status}`);
+    log.error(`Gemini API error: ${errorText.substring(0, 500)}`);
+    throw new Error(`Gemini API failed: ${res.status} - ${errorText.substring(0, 200)}`);
   }
 
   const json = await res.json();
   const responseText = json.candidates?.[0]?.content?.parts?.[0]?.text;
+  const finishReason = json.candidates?.[0]?.finishReason;
+  log.info(`Gemini finish reason: ${finishReason}, response length: ${responseText?.length || 0}`);
 
   if (!responseText) {
+    log.error('No text in Gemini response', { candidates: json.candidates });
     throw new Error('No response from Gemini');
   }
 
   try {
-    return JSON.parse(responseText);
-  } catch {
-    console.error('Failed to parse Gemini response:', responseText);
+    const parsed = JSON.parse(responseText);
+    log.info(`Parsed ${parsed.profanities?.length || 0} profanities from Gemini`);
+    return parsed;
+  } catch (parseErr) {
+    log.error(`Failed to parse Gemini JSON response: ${(parseErr as Error).message}`, {
+      responsePreview: responseText.substring(0, 300),
+    });
     return { profanities: [], summary: 'Analysis failed to parse.' };
   }
 }
