@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
         year: attrs.year as number,
         imdb_id: attrs.imdb_id ? `tt${String(attrs.imdb_id).padStart(7, '0')}` : null,
         tmdb_id: attrs.tmdb_id as number,
-        poster_url: (attrs.img_url as string) || null,
+        poster_url: null as string | null,
         subtitle_count: attrs.subtitle_count as number,
         season_count: (attrs.seasons_count || attrs.season_count || undefined) as number | undefined,
       };
