@@ -12,6 +12,7 @@ interface SearchResult {
   tmdb_id: number;
   poster_url: string | null;
   subtitle_count: number;
+  season_count?: number;
 }
 
 interface SearchBarProps {
@@ -117,7 +118,7 @@ export default function SearchBar({ onSelect }: SearchBarProps) {
     <div className="relative w-full max-w-xl mx-auto">
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <svg className="w-4 h-4 text-[#71717a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 text-[#94a3b8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
@@ -129,12 +130,12 @@ export default function SearchBar({ onSelect }: SearchBarProps) {
           onKeyDown={handleKeyDown}
           onFocus={() => results.length > 0 && setIsOpen(true)}
           placeholder="Search any movie or TV show..."
-          className="w-full pl-11 pr-11 py-3 bg-[#131316] border border-[#27272a] rounded-xl text-[#fafafa] placeholder-[#52525b] focus:outline-none focus:border-[#06b6d4] focus:ring-1 focus:ring-[#06b6d4]/50 text-[15px]"
+          className="w-full pl-11 pr-11 py-3 bg-white border border-[#e2e8f0] rounded-xl text-[#0f172a] placeholder-[#94a3b8] focus:outline-none focus:border-[#0891b2] focus:ring-2 focus:ring-[#0891b2]/20 text-[15px] shadow-sm"
           autoComplete="off"
         />
         {isLoading && (
           <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
-            <div className="w-4 h-4 border-2 border-[#06b6d4] border-t-transparent rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-[#0891b2] border-t-transparent rounded-full animate-spin" />
           </div>
         )}
       </div>
@@ -142,34 +143,34 @@ export default function SearchBar({ onSelect }: SearchBarProps) {
       {isOpen && results.length > 0 && (
         <div
           ref={dropdownRef}
-          className="absolute w-full mt-1.5 bg-[#131316] border border-[#27272a] rounded-xl shadow-2xl overflow-hidden z-50 max-h-[380px] overflow-y-auto"
+          className="absolute w-full mt-1.5 bg-white border border-[#e2e8f0] rounded-xl shadow-lg overflow-hidden z-50 max-h-[380px] overflow-y-auto"
         >
           {results.map((result, index) => (
             <button
               key={result.id}
               onClick={() => handleSelect(result)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 text-left cursor-pointer border-0 ${
-                index === selectedIndex ? 'bg-[#1a1a1f]' : 'hover:bg-[#1a1a1f]'
-              } ${index > 0 ? 'border-t border-[#27272a]/50' : ''}`}
-              style={{ background: index === selectedIndex ? '#1a1a1f' : undefined }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 text-left cursor-pointer border-0 transition-colors ${
+                index === selectedIndex ? 'bg-[#f1f5f9]' : 'hover:bg-[#f8fafc]'
+              } ${index > 0 ? 'border-t border-[#f1f5f9]' : ''}`}
+              style={{ background: index === selectedIndex ? '#f1f5f9' : undefined }}
             >
-              <div className="w-10 h-14 rounded-md overflow-hidden bg-[#1a1a1f] flex-shrink-0">
+              <div className="w-10 h-14 rounded-md overflow-hidden bg-[#f1f5f9] flex-shrink-0">
                 {result.poster_url ? (
                   <img src={result.poster_url} alt={result.title} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[#52525b] text-[10px]">N/A</div>
+                  <div className="w-full h-full flex items-center justify-center text-[#94a3b8] text-[10px]">N/A</div>
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[#fafafa] text-sm font-medium truncate">{result.title}</div>
+                <div className="text-[#0f172a] text-sm font-medium truncate">{result.title}</div>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#06b6d4]/10 text-[#06b6d4] font-medium uppercase tracking-wide">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0891b2]/8 text-[#0891b2] font-medium uppercase tracking-wide">
                     {result.type === 'tvshow' ? 'TV' : 'Film'}
                   </span>
-                  {result.year && <span className="text-xs text-[#71717a]">{result.year}</span>}
+                  {result.year > 0 && <span className="text-xs text-[#64748b]">{result.year}</span>}
                 </div>
               </div>
-              <svg className="w-3.5 h-3.5 text-[#52525b] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 text-[#cbd5e1] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
@@ -178,14 +179,14 @@ export default function SearchBar({ onSelect }: SearchBarProps) {
       )}
 
       {isOpen && query.length >= 2 && results.length === 0 && !isLoading && (
-        <div className="absolute w-full mt-1.5 bg-[#131316] border border-[#27272a] rounded-xl shadow-2xl p-5 text-center z-50">
+        <div className="absolute w-full mt-1.5 bg-white border border-[#e2e8f0] rounded-xl shadow-lg p-5 text-center z-50">
           {errorMsg ? (
             <div>
-              <p className="text-[#ef4444] text-sm font-medium">Error</p>
-              <p className="text-[#a1a1aa] text-xs mt-1">{errorMsg}</p>
+              <p className="text-[#dc2626] text-sm font-medium">Error</p>
+              <p className="text-[#64748b] text-xs mt-1">{errorMsg}</p>
             </div>
           ) : (
-            <p className="text-[#71717a] text-sm">No results for &ldquo;{query}&rdquo;</p>
+            <p className="text-[#64748b] text-sm">No results for &ldquo;{query}&rdquo;</p>
           )}
         </div>
       )}

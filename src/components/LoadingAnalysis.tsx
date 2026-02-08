@@ -22,15 +22,15 @@ export default function LoadingAnalysis({ title }: { title: string }) {
 
   return (
     <div className="max-w-md mx-auto py-20">
-      <div className="bg-[#131316] border border-[#27272a] rounded-xl p-8 text-center">
-        <div className="w-12 h-12 mx-auto mb-5 rounded-full bg-[#06b6d4]/10 flex items-center justify-center">
-          <div className="w-5 h-5 border-2 border-[#06b6d4] border-t-transparent rounded-full animate-spin" />
+      <div className="bg-white border border-[#e2e8f0] rounded-xl shadow-sm p-8 text-center">
+        <div className="w-12 h-12 mx-auto mb-5 rounded-full bg-[#0891b2]/8 flex items-center justify-center">
+          <div className="w-5 h-5 border-2 border-[#0891b2] border-t-transparent rounded-full animate-spin" />
         </div>
 
-        <h2 className="text-lg font-semibold text-[#fafafa] mb-1">
+        <h2 className="text-lg font-semibold text-[#0f172a] mb-1">
           Analyzing &ldquo;{title}&rdquo;
         </h2>
-        <p className="text-[#71717a] mb-6 text-sm">
+        <p className="text-[#64748b] mb-6 text-sm">
           This may take a moment...
         </p>
 
@@ -38,17 +38,17 @@ export default function LoadingAnalysis({ title }: { title: string }) {
           {steps.map((step, index) => (
             <div
               key={step.label}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg ${
-                index < currentStep ? 'bg-[#22c55e]/5' : index === currentStep ? 'bg-[#06b6d4]/5' : 'opacity-30'
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${
+                index < currentStep ? 'bg-[#f0fdf4]' : index === currentStep ? 'bg-[#ecfeff]' : 'opacity-30'
               }`}
             >
               <div
                 className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                   index < currentStep
-                    ? 'bg-[#22c55e]/15 text-[#22c55e]'
+                    ? 'bg-[#16a34a]/15 text-[#16a34a]'
                     : index === currentStep
-                    ? 'bg-[#06b6d4]/15 text-[#06b6d4]'
-                    : 'bg-[#27272a] text-[#52525b]'
+                    ? 'bg-[#0891b2]/15 text-[#0891b2]'
+                    : 'bg-[#f1f5f9] text-[#94a3b8]'
                 }`}
               >
                 {index < currentStep ? (
@@ -60,12 +60,12 @@ export default function LoadingAnalysis({ title }: { title: string }) {
                 )}
               </div>
               <span className={`text-sm ${
-                index < currentStep ? 'text-[#22c55e]' : index === currentStep ? 'text-[#06b6d4]' : 'text-[#52525b]'
+                index < currentStep ? 'text-[#16a34a]' : index === currentStep ? 'text-[#0891b2]' : 'text-[#94a3b8]'
               }`}>
                 {step.label}
               </span>
               {index === currentStep && (
-                <div className="w-3 h-3 border-[1.5px] border-[#06b6d4] border-t-transparent rounded-full animate-spin ml-auto" />
+                <div className="w-3 h-3 border-[1.5px] border-[#0891b2] border-t-transparent rounded-full animate-spin ml-auto" />
               )}
             </div>
           ))}

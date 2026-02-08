@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
         tmdb_id: attrs.tmdb_id,
         poster_url: attrs.img_url || null,
         subtitle_count: attrs.subtitle_count,
+        season_count: attrs.seasons_count || attrs.season_count || undefined,
       };
     });
 

@@ -11,11 +11,11 @@ export default function RatingBadge({ rating, score, size = 'md' }: RatingBadgeP
   const scoreSizeClasses = { sm: 'text-[10px]', md: 'text-xs', lg: 'text-sm' };
   const ratingClass = `rating-${rating.toLowerCase()}`;
   const ratingColor =
-    rating === 'Clean' ? '#22c55e' : rating === 'Mild' ? '#eab308' : rating === 'Moderate' ? '#f97316' : rating === 'Heavy' ? '#ef4444' : '#dc2626';
+    rating === 'Clean' ? '#16a34a' : rating === 'Mild' ? '#ca8a04' : rating === 'Moderate' ? '#ea580c' : rating === 'Heavy' ? '#dc2626' : '#991b1b';
 
   return (
     <div className="flex flex-col items-center gap-1.5">
-      <div className={`${sizeClasses[size]} ${ratingClass} rounded-full flex flex-col items-center justify-center text-white font-bold`}>
+      <div className={`${sizeClasses[size]} ${ratingClass} rounded-full flex flex-col items-center justify-center text-white font-bold shadow-md`}>
         <span>{score}</span>
         <span className={`${scoreSizeClasses[size]} font-medium opacity-80`}>/100</span>
       </div>

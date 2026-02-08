@@ -69,6 +69,7 @@ export async function searchFeatures(query: string): Promise<unknown[]> {
         year: first.attributes?.year,
         tmdb_id: first.attributes?.tmdb_id,
         img_url: first.attributes?.img_url ? 'present' : 'missing',
+        seasons_count: first.attributes?.seasons_count,
       });
     }
 
@@ -88,23 +89,35 @@ export async function searchFeatures(query: string): Promise<unknown[]> {
 export async function searchSubtitles(
   tmdbId: number,
   type: 'movie' | 'tvshow',
-  language: string = 'en'
+  language: string = 'en',
+  season?: number,
+  episode?: number
 ): Promise<SubtitleResult[]> {
-  const cacheKey = `subtitles:${tmdbId}:${type}:${language}`;
+  const cacheKey = `subtitles:${tmdbId}:${type}:${language}:s${season ?? ''}e${episode ?? ''}`;
   const cached = searchCache.get<SubtitleResult[]>(cacheKey);
   if (cached) {
-    log.info(`searchSubtitles cache HIT for tmdb:${tmdbId}`);
+    log.info(`searchSubtitles cache HIT for tmdb:${tmdbId} s${season}e${episode}`);
     return cached;
   }
-  log.info(`searchSubtitles cache MISS for tmdb:${tmdbId}, type:${type}, lang:${language}`);
+  log.info(`searchSubtitles cache MISS for tmdb:${tmdbId}, type:${type}, lang:${language}, s${season}e${episode}`);
 
   const headers = getHeaders();
   const params = new URLSearchParams({
-    tmdb_id: tmdbId.toString(),
     languages: language,
     order_by: 'download_count',
-    type: type === 'tvshow' ? 'episode' : 'movie',
+    order_direction: 'desc',
   });
+
+  if (type === 'tvshow' && season !== undefined && episode !== undefined) {
+    params.set('parent_tmdb_id', tmdbId.toString());
+    params.set('season_number', season.toString());
+    params.set('episode_number', episode.toString());
+  } else {
+    params.set('tmdb_id', tmdbId.toString());
+    if (type === 'movie') {
+      params.set('type', 'movie');
+    }
+  }
 
   const url = `${BASE_URL}/subtitles?${params}`;
   log.info(`Fetching: GET ${url}`);
@@ -138,22 +151,26 @@ export async function searchSubtitles(
   const json = await res.json();
   const results: SubtitleResult[] = (json.data || []).map((item: Record<string, unknown>) => {
     const attrs = item.attributes as Record<string, unknown>;
+    const featureDetails = attrs.feature_details as Record<string, unknown> | undefined;
     return {
       id: item.id,
       subtitle_id: attrs.subtitle_id,
       language: attrs.language,
       download_count: attrs.download_count,
+      ratings: attrs.ratings || 0,
       hearing_impaired: attrs.hearing_impaired,
       release: attrs.release,
       files: (attrs.files as Array<Record<string, unknown>>)?.map((f) => ({
         file_id: f.file_id,
         file_name: f.file_name,
       })) || [],
+      episode_number: featureDetails?.episode_number as number | undefined,
     };
   });
 
   log.info(`Found ${results.length} subtitle results`, {
     top_download_count: results[0]?.download_count,
+    top_ratings: results[0]?.ratings,
     top_file_count: results[0]?.files?.length,
   });
 
