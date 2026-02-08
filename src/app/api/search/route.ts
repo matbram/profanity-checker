@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchFeatures } from '@/lib/opensubtitles';
+import { getMovieDetails, getTVDetails } from '@/lib/tmdb';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api/search');
@@ -23,21 +24,39 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ results: [], source: 'opensubtitles', message: 'No results from OpenSubtitles' });
     }
 
-    const results = (features as Array<Record<string, unknown>>).map((item) => {
+    const mapped = (features as Array<Record<string, unknown>>).map((item) => {
       const attrs = item.attributes as Record<string, unknown>;
       return {
         id: String(item.id),
-        type: attrs.feature_type === 'Tvshow' ? 'tvshow' : 'movie',
-        title: attrs.title,
-        original_title: attrs.original_title || attrs.title,
-        year: attrs.year,
+        type: (attrs.feature_type === 'Tvshow' ? 'tvshow' : 'movie') as 'movie' | 'tvshow',
+        title: attrs.title as string,
+        original_title: (attrs.original_title || attrs.title) as string,
+        year: attrs.year as number,
         imdb_id: attrs.imdb_id ? `tt${String(attrs.imdb_id).padStart(7, '0')}` : null,
-        tmdb_id: attrs.tmdb_id,
-        poster_url: attrs.img_url || null,
-        subtitle_count: attrs.subtitle_count,
-        season_count: attrs.seasons_count || attrs.season_count || undefined,
+        tmdb_id: attrs.tmdb_id as number,
+        poster_url: null as string | null,
+        subtitle_count: attrs.subtitle_count as number,
+        season_count: (attrs.seasons_count || attrs.season_count || undefined) as number | undefined,
       };
     });
+
+    // Fetch TMDB poster URLs in parallel for reliable images
+    const results = await Promise.all(
+      mapped.map(async (item) => {
+        if (!item.tmdb_id) return item;
+        try {
+          const details = item.type === 'tvshow'
+            ? await getTVDetails(item.tmdb_id)
+            : await getMovieDetails(item.tmdb_id);
+          if (details?.poster_url) {
+            return { ...item, poster_url: details.poster_url };
+          }
+        } catch {
+          // Fall back to OpenSubtitles img_url
+        }
+        return item;
+      })
+    );
 
     log.info(`Returning ${results.length} mapped results`);
     return NextResponse.json({ results, source: 'opensubtitles' });

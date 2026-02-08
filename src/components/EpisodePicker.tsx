@@ -27,6 +27,11 @@ interface EpisodePickerProps {
   onBack: () => void;
 }
 
+function proxyImg(url: string | null): string | null {
+  if (!url) return null;
+  return `/api/image-proxy?url=${encodeURIComponent(url)}`;
+}
+
 export default function EpisodePicker({ show, onSelect, onBack }: EpisodePickerProps) {
   const seasonCount = show.season_count || 1;
   const [selectedSeason, setSelectedSeason] = useState(1);
@@ -66,7 +71,8 @@ export default function EpisodePicker({ show, onSelect, onBack }: EpisodePickerP
     <div className="max-w-3xl mx-auto">
       <button
         onClick={onBack}
-        className="flex items-center gap-1.5 text-[#64748b] hover:text-[#0f172a] bg-transparent border-0 cursor-pointer text-sm mb-6 transition-colors"
+        className="flex items-center gap-1.5 bg-transparent border-0 cursor-pointer text-sm mb-6 transition-colors"
+        style={{ color: 'var(--text-muted)' }}
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -75,28 +81,28 @@ export default function EpisodePicker({ show, onSelect, onBack }: EpisodePickerP
       </button>
 
       {/* Show header */}
-      <div className="bg-white rounded-xl shadow-sm border border-[#e2e8f0] p-5 mb-6">
+      <div className="rounded-xl shadow-sm p-5 mb-6" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
         <div className="flex gap-4">
           {show.poster_url ? (
             <img
-              src={show.poster_url}
+              src={proxyImg(show.poster_url)!}
               alt={show.title}
               className="w-16 h-24 rounded-lg object-cover flex-shrink-0 shadow-sm"
             />
           ) : (
-            <div className="w-16 h-24 rounded-lg bg-[#f1f5f9] flex items-center justify-center text-[#94a3b8] text-[10px] flex-shrink-0">
+            <div className="w-16 h-24 rounded-lg flex items-center justify-center text-[10px] flex-shrink-0" style={{ backgroundColor: 'var(--bg-surface)', color: 'var(--text-faint)' }}>
               N/A
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold text-[#0f172a] truncate">{show.title}</h1>
+            <h1 className="text-xl font-bold truncate" style={{ color: 'var(--text-primary)' }}>{show.title}</h1>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0891b2]/8 text-[#0891b2] font-medium uppercase tracking-wide">
+              <span className="text-[10px] px-1.5 py-0.5 rounded font-medium uppercase tracking-wide" style={{ backgroundColor: 'var(--accent-muted)', color: 'var(--accent)' }}>
                 TV Show
               </span>
-              {show.year > 0 && <span className="text-sm text-[#64748b]">{show.year}</span>}
+              {show.year > 0 && <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{show.year}</span>}
             </div>
-            <p className="text-sm text-[#64748b] mt-2">
+            <p className="text-sm mt-2" style={{ color: 'var(--text-muted)' }}>
               Select a season and episode to analyze for profanity.
             </p>
           </div>
@@ -105,17 +111,19 @@ export default function EpisodePicker({ show, onSelect, onBack }: EpisodePickerP
 
       {/* Season selector */}
       <div className="mb-5">
-        <h2 className="text-sm font-semibold text-[#0f172a] mb-3">Season</h2>
+        <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>Season</h2>
         <div className="flex flex-wrap gap-2">
           {Array.from({ length: Math.max(seasonCount, 1) }, (_, i) => i + 1).map(s => (
             <button
               key={s}
               onClick={() => setSelectedSeason(s)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium border cursor-pointer transition-all ${
-                selectedSeason === s
-                  ? 'bg-[#0891b2] text-white border-[#0891b2] shadow-sm'
-                  : 'bg-white text-[#475569] border-[#e2e8f0] hover:border-[#0891b2] hover:text-[#0891b2]'
-              }`}
+              className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-all"
+              style={{
+                backgroundColor: selectedSeason === s ? 'var(--accent)' : 'var(--bg-card)',
+                color: selectedSeason === s ? '#ffffff' : 'var(--text-secondary)',
+                border: selectedSeason === s ? '1px solid var(--accent)' : '1px solid var(--border)',
+                boxShadow: selectedSeason === s ? '0 1px 2px rgba(0,0,0,0.05)' : undefined,
+              }}
             >
               Season {s}
             </button>
@@ -125,7 +133,7 @@ export default function EpisodePicker({ show, onSelect, onBack }: EpisodePickerP
 
       {/* Episodes */}
       <div>
-        <h2 className="text-sm font-semibold text-[#0f172a] mb-3">
+        <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
           Episodes {isLoading ? '' : `(${episodes.length})`}
         </h2>
 
@@ -136,14 +144,14 @@ export default function EpisodePicker({ show, onSelect, onBack }: EpisodePickerP
             ))}
           </div>
         ) : error ? (
-          <div className="bg-white rounded-xl border border-[#fecaca] p-5 text-center">
-            <p className="text-[#dc2626] text-sm font-medium">Failed to load episodes</p>
-            <p className="text-[#64748b] text-xs mt-1">{error}</p>
+          <div className="rounded-xl p-5 text-center" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-error)' }}>
+            <p className="text-sm font-medium" style={{ color: 'var(--danger)' }}>Failed to load episodes</p>
+            <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{error}</p>
           </div>
         ) : episodes.length === 0 ? (
-          <div className="bg-white rounded-xl border border-[#e2e8f0] p-8 text-center">
-            <p className="text-[#64748b] text-sm">No episodes with subtitles found for Season {selectedSeason}.</p>
-            <p className="text-[#94a3b8] text-xs mt-2">Try a different season or check back later.</p>
+          <div className="rounded-xl p-8 text-center" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No episodes with subtitles found for Season {selectedSeason}.</p>
+            <p className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>Try a different season or check back later.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -151,20 +159,23 @@ export default function EpisodePicker({ show, onSelect, onBack }: EpisodePickerP
               <button
                 key={ep.number}
                 onClick={() => onSelect(selectedSeason, ep.number)}
-                className="bg-white rounded-xl border border-[#e2e8f0] p-4 text-left cursor-pointer hover:border-[#0891b2] hover:shadow-md transition-all group"
+                className="rounded-xl p-4 text-left cursor-pointer transition-all group"
+                style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.1)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = ''; }}
               >
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-xs font-bold text-[#0891b2] bg-[#0891b2]/8 px-1.5 py-0.5 rounded">
+                  <span className="text-xs font-bold px-1.5 py-0.5 rounded" style={{ color: 'var(--accent)', backgroundColor: 'var(--accent-muted)' }}>
                     E{ep.number}
                   </span>
-                  <span className="text-[10px] text-[#94a3b8]">
+                  <span className="text-[10px]" style={{ color: 'var(--text-faint)' }}>
                     {ep.subtitle_count} sub{ep.subtitle_count !== 1 ? 's' : ''}
                   </span>
                 </div>
-                <p className="text-sm text-[#0f172a] font-medium truncate group-hover:text-[#0891b2] transition-colors">
+                <p className="text-sm font-medium truncate transition-colors" style={{ color: 'var(--text-primary)' }}>
                   {ep.title}
                 </p>
-                <div className="flex items-center gap-1 mt-2 text-[#94a3b8] group-hover:text-[#0891b2] transition-colors">
+                <div className="flex items-center gap-1 mt-2 transition-colors" style={{ color: 'var(--text-faint)' }}>
                   <span className="text-[10px]">Analyze</span>
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
